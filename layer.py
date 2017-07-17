@@ -2,31 +2,38 @@
 import tensorflow as tf
 
 
+"""
+    层级参数 + 是否偏置 + 模型名字 + 超参数
+"""
+
 def conv2d(inputs, filter_height, filter_width, output_channels, stride=(1, 1), padding='SAME', isBias=True,
-           name='Conv_2D', ):
+           name='Conv_2D',  bias_constant = 0.1 , stddev_norm = 2.0):
     """
     tensorflow 的代码  用torch的风格进行封装
     Args:
         inputs:           上一层的输入
         filter_height:    卷积核的高
-        filter_width:     卷积核的快
+        filter_width:     卷积核的宽
         output_channels:  输出通道的个数
         stride:           步长
         padding:          边界格式
         isBias:           是否需要偏置
         name:             这一层的名字 用于区分作用域
+        bias_constant     初始化bias的超参数
+        stddev_norm       初始化stddev的超参数
     Returns:
+        卷积后的多通道图像 [barch,height,width,channel]
 
     """
     input_channels = int(inputs.get_shape()[-1])  # 通过上一层的输入获取 channelTrue
     fan_in = filter_height * filter_width * input_channels
-    stddev = tf.sqrt(2.0 / fan_in)
+    stddev = tf.sqrt(stddev_norm * 1.0 / fan_in)
     weights_shape = [filter_height, filter_width, input_channels, output_channels]
     biases_shape = [output_channels]
 
     with tf.variable_scope(name):
         filters_init = tf.truncated_normal_initializer(stddev=stddev)
-        biases_init = tf.constant_initializer(0.1)
+        biases_init = tf.constant_initializer(bias_constant * 1.0)
 
         """
         有的话就话就reuse  没有的话就重新创建
@@ -41,17 +48,34 @@ def conv2d(inputs, filter_height, filter_width, output_channels, stride=(1, 1), 
             return tf.nn.conv2d(inputs, filters, strides=[1, *stride, 1], padding=padding)
 
 
-def deconv2d(inputs, filter_height, filter_width, output_shape, stride=(1, 1), padding='SAME', isBias = True , name='Deconv2D'):
+def deconv2d(inputs, filter_height, filter_width, output_shape, stride=(1, 1), padding='SAME', isBias = True ,
+             name='Deconv2D', bias_constant = 0.1 , stddev_norm = 2.0):
+    """
+    将反卷积(上采样)的代码进行包装 成torch格式的
+    Args:
+        inputs:             上一层的输入
+        filter_height:      卷积核的高
+        filter_width:       卷积核的宽
+        output_shape:       输出的格式
+        stride:             步长 (1,1)
+        padding:            边界
+        isBias:             是否需要偏置
+        name:               这一层的名字 用于区分作用域
+        bias_constant     初始化bias的超参数
+        stddev_norm       初始化stddev的超参数
+    Returns:
+            反卷积后的多通道图像 [barch,height,width,channel]
+    """
     input_channels = int(inputs.get_shape()[-1])
     output_channels = output_shape[-1]
     fan_in = filter_height * filter_width * output_channels
-    stddev = tf.sqrt(2.0 / fan_in)
+    stddev = tf.sqrt(stddev_norm*1.0 / fan_in)
     weights_shape = [filter_height, filter_width, output_channels, input_channels]
     biases_shape = [output_channels]
 
     with tf.variable_scope(name):
         filters_init = tf.truncated_normal_initializer(stddev=stddev)
-        biases_init = tf.constant_initializer(0.1)
+        biases_init = tf.constant_initializer(bias_constant*1.0)
 
         filters = tf.get_variable(
             'weights', shape=weights_shape, initializer=filters_init, collections=['weights', 'variables'])
@@ -75,7 +99,6 @@ def leaky_relu(inputs, leak=0.1, name='LeakyRelu'):
         name:    激活层的名字
 
     Returns:
-
     """
     with tf.name_scope(name):
         return tf.maximum(inputs, leak * inputs)
