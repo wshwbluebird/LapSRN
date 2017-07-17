@@ -48,15 +48,16 @@ def conv2d(inputs, filter_height, filter_width, output_channels, stride=(1, 1), 
             return tf.nn.conv2d(inputs, filters, strides=[1, *stride, 1], padding=padding)
 
 
-def deconv2d(inputs, filter_height, filter_width, output_shape, stride=(1, 1), padding='SAME', isBias = True ,
+def deconv2d(inputs, filter_height, filter_width, output_factor, stride=(1, 1), padding='SAME', isBias = True ,
              name='Deconv2D', bias_constant = 0.1 , stddev_norm = 2.0):
     """
     将反卷积(上采样)的代码进行包装 成torch格式的
+    通道数量不发生改变
     Args:
         inputs:             上一层的输入
         filter_height:      卷积核的高
         filter_width:       卷积核的宽
-        output_shape:       输出的格式
+        output_factor:      上采样变化方式
         stride:             步长 (1,1)
         padding:            边界
         isBias:             是否需要偏置
@@ -67,11 +68,20 @@ def deconv2d(inputs, filter_height, filter_width, output_shape, stride=(1, 1), p
             反卷积后的多通道图像 [barch,height,width,channel]
     """
     input_channels = int(inputs.get_shape()[-1])
-    output_channels = output_shape[-1]
+    # 通道数暂时不发生改变
+    output_channels = input_channels
     fan_in = filter_height * filter_width * output_channels
     stddev = tf.sqrt(stddev_norm*1.0 / fan_in)
     weights_shape = [filter_height, filter_width, output_channels, input_channels]
     biases_shape = [output_channels]
+    """
+        确定输出的output_shape
+    """
+    batch_size = int(inputs.get_shape()[0])
+    rows = int(inputs.get_shape()[1])
+    cols = int(inputs.get_shape()[2])
+    channels = int(inputs.get_shape()[3])
+    output_shape = [batch_size,rows,cols,channels]
 
     with tf.variable_scope(name):
         filters_init = tf.truncated_normal_initializer(stddev=stddev)
