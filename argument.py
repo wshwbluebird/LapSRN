@@ -11,7 +11,7 @@ class Argument():
         self.height = 320        #输入图像的高度
         self.width = 320         #输入输入的宽度
         self.batch_size = 16     #每批训练数据的大小
-        self.num_threads = 3,    #数据导入开启的线程数量
+        self.num_threads = 4     #数据导入开启的线程数量
         self.min_after_dequeue = 1024  #保证线程中至少剩下的数据数量
 
 

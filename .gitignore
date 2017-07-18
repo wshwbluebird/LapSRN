@@ -25,3 +25,5 @@ test.py
 *.jpg
 
 *.jpg
+
+*.pyc
