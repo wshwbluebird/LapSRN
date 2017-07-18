@@ -6,7 +6,7 @@ import tensorflow as tf
     层级参数 + 是否偏置 + 模型名字 + 超参数
 """
 
-def conv2d(inputs, filter_height, filter_width, output_channels, stride=(1, 1), padding='SAME', isBias=True,
+def conv2d(inputs, filter_height, filter_width, output_channels,level, stride=(1, 1), padding='SAME', isBias=True,
            name='Conv_2D',  bias_constant = 0.1 , stddev_norm = 2.0):
     """
     tensorflow 的代码  用torch的风格进行封装
@@ -39,16 +39,16 @@ def conv2d(inputs, filter_height, filter_width, output_channels, stride=(1, 1), 
         有的话就话就reuse  没有的话就重新创建
         """
         filters = tf.get_variable(
-            'weights', shape=weights_shape, initializer=filters_init, collections=['weights', 'variables'])
+            'weights'+str(level), shape=weights_shape, initializer=filters_init, collections=['weights', 'variables'])
         if isBias:
             biases = tf.get_variable(
-                'biases', shape=biases_shape, initializer=biases_init, collections=['biases', 'variables'])
+                'biases'+str(level), shape=biases_shape, initializer=biases_init, collections=['biases', 'variables'])
             return tf.nn.conv2d(inputs, filters, strides=[1, *stride, 1], padding=padding) + biases
         else:
             return tf.nn.conv2d(inputs, filters, strides=[1, *stride, 1], padding=padding)
 
 
-def deconv2d(inputs, filters_weight, output_factor, stride=(1, 1), padding='SAME', isBias = True ,
+def deconv2d(inputs, filters_weight, output_factor, level, stride=(1, 1), padding='SAME', isBias = True ,
              name='Deconv2D', bias_constant = 0.1 ):
     """
     将反卷积(上采样)的代码进行包装 成torch格式的
@@ -83,11 +83,11 @@ def deconv2d(inputs, filters_weight, output_factor, stride=(1, 1), padding='SAME
         biases_init = tf.constant_initializer(bias_constant*1.0)
 
         filters = tf.get_variable(
-            'weights',  initializer=filters_init, collections=['weights', 'variables'])
+            'weights'+str(level),  initializer=filters_init, collections=['weights', 'variables'])
 
         if isBias:
             biases = tf.get_variable(
-                'biases', shape=biases_shape, initializer=biases_init, collections=['biases', 'variables'])
+                'biases'+str(level), shape=biases_shape, initializer=biases_init, collections=['biases', 'variables'])
             return tf.nn.conv2d_transpose(inputs, filters, output_shape, strides=[1, *stride, 1], padding=padding) + biases
         else:
             return tf.nn.conv2d_transpose(inputs, filters, output_shape, strides=[1, *stride, 1], padding=padding)

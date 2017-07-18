@@ -38,6 +38,7 @@ def batch_queue_for_training(data_path):
     patch = tf.image.convert_image_dtype(patch, dtype=tf.float32)
 
     image_HR8 = tf.random_crop(patch, [image_height, image_width, num_channel])
+
     image_HR4 = tf.image.resize_images(image_HR8, [int(image_height / 2), int(image_width / 2)],
                                        method=tf.image.ResizeMethod.BICUBIC)
     image_HR2 = tf.image.resize_images(image_HR4, [int(image_height / 4), int(image_width / 4)],

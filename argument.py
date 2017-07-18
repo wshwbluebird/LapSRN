@@ -13,6 +13,11 @@ class Argument():
         self.batch_size = 16     #每批训练数据的大小
         self.num_threads = 4     #数据导入开启的线程数量
         self.min_after_dequeue = 1024  #保证线程中至少剩下的数据数量
+        self.decay = 2          #衰减速率
+        self.decay_step = 3000  #多少步学习速率衰减一次
+        self.lr = 0.001         #初始化的学习速率
+        self.iter_nums = 10000  #迭代次数
+        self.train_data_path =  "./dataset/BSDS300/images/train"  #训练集文件夹的位置
 
 
 options = Argument()
