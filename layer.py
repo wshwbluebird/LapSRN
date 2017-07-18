@@ -48,7 +48,7 @@ def conv2d(inputs, filter_height, filter_width, output_channels,level, stride=(1
             return tf.nn.conv2d(inputs, filters, strides=[1, *stride, 1], padding=padding)
 
 
-def deconv2d(inputs, filters_weight, output_factor, level, stride=(1, 1), padding='SAME', isBias = True ,
+def deconv2d(inputs, filters_weight, output_factor, level, stride=(2, 2), padding='SAME', isBias = True ,
              name='Deconv2D', bias_constant = 0.1 ):
     """
     将反卷积(上采样)的代码进行包装 成torch格式的
@@ -77,13 +77,14 @@ def deconv2d(inputs, filters_weight, output_factor, level, stride=(1, 1), paddin
     cols = int(inputs.get_shape()[2])*output_factor[1]
     channels = int(inputs.get_shape()[3])
     output_shape = [batch_size,rows,cols,channels]
+    weights_shape = [len(filters_weight), len(filters_weight[0]), output_channels, input_channels]
 
     with tf.variable_scope(name):
-        filters_init = tf.Variable(filters_weight)
+        filters_init = tf.constant_initializer(filters_weight)
         biases_init = tf.constant_initializer(bias_constant*1.0)
 
         filters = tf.get_variable(
-            'weights'+str(level),  initializer=filters_init, collections=['weights', 'variables'])
+            'weights'+str(level),  shape=weights_shape,   initializer=filters_init, collections=['weights', 'variables'])
 
         if isBias:
             biases = tf.get_variable(
