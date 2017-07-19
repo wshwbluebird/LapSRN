@@ -18,7 +18,7 @@ def get_loss_of_batch(path):
 
 
 def is_already_Save(savePath):
-    return  os.path.exists(savePath)
+    return  os.path.exists(savePath+".meta")
 
 """
     训练用代码
@@ -43,7 +43,6 @@ def train():
             sess.run(tf.global_variables_initializer())
             print("create new model")
         tf.train.start_queue_runners(sess=sess)
-
         for step in range(1, argument.options.iter_nums+1):
             feed_dict = {path:argument.options.validation_data_path}
 
