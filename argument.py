@@ -15,7 +15,7 @@ class Argument():
         self.min_after_dequeue = 1024  #保证线程中至少剩下的数据数量
         self.decay = 2          #衰减速率
         self.decay_step = 50  #多少步学习速率衰减一次
-        self.lr = 0.00001         #初始化的学习速率
+        self.lr = 0.0001         #初始化的学习速率
         self.iter_nums = 10000  #迭代次数
         self.train_data_path = "./dataset/BSDS300/images/train"  #训练集文件夹的位置
         self.validation_data_path = "./dataset/BSDS300/images/validation"  # 验证集文件夹的位置
