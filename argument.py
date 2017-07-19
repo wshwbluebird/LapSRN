@@ -22,7 +22,7 @@ class Argument():
         self.test_epoches = 20  #测试的迭代周期数
         self.train_data_path = "./dataset/BSDS300/images/train"  #训练集文件夹的位置
         self.validation_data_path = "./dataset/BSDS300/images/validation"  # 验证集文件夹的位置
-        self.test_data_path = "./dataset/BSDS300/images/validation"  # 测试集文件夹的位置
+        self.test_data_path = "./dataset/BSDS300/images/test"  # 测试集文件夹的位置
         self.save_path = "./"   #保存模型参数的地方
         self.model_name = "testModel5"  #训练模型的名字
 

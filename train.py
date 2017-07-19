@@ -37,7 +37,7 @@ def get_avg_psnr(path):
     mse2 = tf.losses.mean_squared_error(hr4_predict, HR4_set)
     mse3 = tf.losses.mean_squared_error(hr8_predict, HR8_set)
 
-    psnr1 = get_avg_psnr(mse1)
+    psnr1 = get_psrn_by_mse(mse1)
     psnr2 = get_psrn_by_mse(mse2)
     psnr3 = get_psrn_by_mse(mse3)
 
@@ -116,10 +116,10 @@ def test():
             avg_p2 = 0
             avg_p3 = 0
             for test_step in range(argument.options.test_epoches):
-                psrn1, psnr2, psnr3 = sess.run([psrn1, psnr2, psnr3])
-                avg_p1 += psrn1
-                avg_p2 += psnr2
-                avg_p3 += psnr3
+                psrn_1, psnr_2, psnr_3 = sess.run([psrn1, psnr2, psnr3])
+                avg_p1 += psrn_1
+                avg_p2 += psnr_2
+                avg_p3 += psnr_3
 
             avg_p1 =  avg_p1 / argument.options.test_epoches
             avg_p2 = avg_p2 / argument.options.test_epoches
@@ -142,7 +142,7 @@ def inference(pic_path):
     #TODO
 
 
-train()
+#train()
 test()
 
 
