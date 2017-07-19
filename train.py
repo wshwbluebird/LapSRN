@@ -5,7 +5,21 @@ import net
 import time
 import dacay_learning_rate
 from os.path import join
+import math
 import os
+
+
+def get_psrn_by_mse(mse):
+    ten = tf.constant(10.0)
+    one = tf.constant(1.0)
+    mid = tf.div(one,mse)
+    a = tf.log(mid)
+    b = tf.log(ten)
+    psnr = tf.div(a,b)
+    return psnr
+
+
+
 def get_loss_of_batch(path):
     [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training(argument.options.train_data_path)
     hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
@@ -16,6 +30,18 @@ def get_loss_of_batch(path):
     return loss_total
 
 
+def get_avg_psnr(path):
+    [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training(path)
+    hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
+    mse1 = tf.losses.mean_squared_error(hr2_predict, HR2_set)
+    mse2 = tf.losses.mean_squared_error(hr4_predict, HR4_set)
+    mse3 = tf.losses.mean_squared_error(hr8_predict, HR8_set)
+
+    psnr1 = get_avg_psnr(mse1)
+    psnr2 = get_psrn_by_mse(mse2)
+    psnr3 = get_psrn_by_mse(mse3)
+
+    return [psnr1,psnr2,psnr3]
 
 
 def is_already_Save(savePath):
@@ -37,7 +63,7 @@ def train():
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
-        with tf.device('/cpu:0'):
+        with tf.device('/gpu:0'):
             if is_already_Save(save_path):
                 saver.restore(sess, save_path)
                 print("load last model ckpt")
@@ -80,24 +106,33 @@ def test():
     if not is_already_Save(save_path):
         print("no model please train a model first")
         return
-    loss = get_loss_of_batch(argument.options.test_data_path)
+    psrn1,psnr2,psnr3 = get_avg_psnr(argument.options.test_data_path)
     saver = tf.train.Saver()
     with tf.Session() as sess:
+        saver.restore(sess, save_path)
         with tf.device('/gpu:0'):
-            saver.restore(sess, save_path)
             tf.train.start_queue_runners(sess=sess)
-            loss_total = 0
-            for test_step in range(10):
-                loss_cur = sess.run(loss)
-                loss_total += loss_cur
+            avg_p1 = 0
+            avg_p2 = 0
+            avg_p3 = 0
+            for test_step in range(argument.options.test_epoches):
+                psrn1, psnr2, psnr3 = sess.run([psrn1, psnr2, psnr3])
+                avg_p1 += psrn1
+                avg_p2 += psnr2
+                avg_p3 += psnr3
 
-            loss_result = loss_total/10
-            print("loss in test_Set = " +str(loss_result))
+            avg_p1 =  avg_p1 / argument.options.test_epoches
+            avg_p2 = avg_p2 / argument.options.test_epoches
+            avg_p3 = avg_p3 / argument.options.test_epoches
+
+            print("psnr in hr2= "+ str(avg_p1))
+            print("psnr in hr4= " + str(avg_p2))
+            print("psnr in hr8= " + str(avg_p3))
 
 """
     预测用代码
 """
-def inference():
+def inference(pic_path):
     save_path = join(argument.options.save_path, argument.options.model_name + ".ckpt")
     if not is_already_Save(save_path):
         print("no model please train a model first")

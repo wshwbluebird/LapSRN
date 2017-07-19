@@ -19,6 +19,7 @@ class Argument():
         self.min_lr = 1e-30     #衰减到多少为止
         self.iter_nums = 10000  #迭代次数
         self.momentum = 0.9     #采用动量算法的动量
+        self.test_epoches = 20  #测试的迭代周期数
         self.train_data_path = "./dataset/BSDS300/images/train"  #训练集文件夹的位置
         self.validation_data_path = "./dataset/BSDS300/images/validation"  # 验证集文件夹的位置
         self.test_data_path = "./dataset/BSDS300/images/validation"  # 测试集文件夹的位置
