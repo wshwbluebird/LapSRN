@@ -74,25 +74,25 @@ def train():
             for step in range(1, argument.options.iter_nums+1):
                 feed_dict = {path:argument.options.validation_data_path}
 
-                if step % 200 == 0:
+                if step % 20 == 0:
                     feed_dict = {path:argument.options.train_data_path}
 
                 start_time = time.time()
                 step_,batch_loss = sess.run([train_step,loss],feed_dict=feed_dict)
                 duration = time.time() - start_time
 
-                if step % 200 ==0 :
+                if step % 20 ==0 :
                     b_loss_validation = sess.run(loss)
                     print("step " + str(step) + ", batch _loss in validation =" + str(b_loss_validation))
 
-                elif step % 100 == 0 or step % 200 == 1:  # show training status
+                elif step % 10 == 0 or step % 200 == 1:  # show training status
                     num_examples_per_step = argument.options.batch_size
                     examples_per_sec = num_examples_per_step / duration
                     sec_per_batch = float(duration)
                     format_str = 'step %d, batch_loss_train = %.3f (%.1f examples/sec; %.3f sec/batch)'
                     print(format_str % (step, batch_loss, examples_per_sec, sec_per_batch))
 
-                if step % 100 == 0:
+                if step % 10 == 0:
                     save_path = saver.save(sess, save_path)
                     print("Model restored!"+str(sess.run(global_step)))
 
@@ -143,5 +143,6 @@ def inference(pic_path):
 
 
 train()
+test()
 
 
