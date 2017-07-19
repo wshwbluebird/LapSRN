@@ -57,7 +57,7 @@ def train():
                 if step % 200 ==0 :
                     b_loss_validation = sess.run(loss)
                     print("step " + str(step) + ", batch _loss in validation =" + str(b_loss_validation))
-                
+
                 elif step % 100 == 0 or step % 200 == 1:  # show training status
                     num_examples_per_step = argument.options.batch_size
                     examples_per_sec = num_examples_per_step / duration

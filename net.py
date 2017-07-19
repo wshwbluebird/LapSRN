@@ -4,13 +4,6 @@ import numpy as np
 import layer
 import argument as arg
 
-# TODO
-"""
-    1 注释不完整需要补充
-    2 option 参数还没有打包
-    3 图像的resize 还没有解决 (可以抛到上一层解决,但是注释要写清楚)
-"""
-
 
 def upsample_filt(size):
     """
