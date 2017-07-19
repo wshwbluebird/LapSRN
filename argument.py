@@ -17,7 +17,11 @@ class Argument():
         self.decay_step = 3000  #多少步学习速率衰减一次
         self.lr = 0.001         #初始化的学习速率
         self.iter_nums = 10000  #迭代次数
-        self.train_data_path =  "./dataset/BSDS300/images/train"  #训练集文件夹的位置
+        self.train_data_path = "./dataset/BSDS300/images/train"  #训练集文件夹的位置
+        self.validation_data_path = "./dataset/BSDS300/images/validation"  # 验证集文件夹的位置
+        self.test_data_path = "./dataset/BSDS300/images/validation"  # 测试集文件夹的位置
+        self.save_path = "./"   #保存模型参数的地方
+        self.model_name = "testModel"  #训练好一个模型的名字
 
 
 options = Argument()
