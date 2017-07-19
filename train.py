@@ -32,7 +32,7 @@ def train():
     global_step = tf.Variable(0, trainable=False, name='global_step')
     learning_rate = tf.train.inverse_time_decay(argument.options.lr, global_step, argument.options.decay_step
                                                 , argument.options.decay)
-    train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss, global_step=global_step)
+    train_step  = tf.train.MomentumOptimizer(learning_rate,momentum=argument.options.momentum).minimize(loss, global_step=global_step)
     saver = tf.train.Saver()
 
     with tf.Session() as sess:

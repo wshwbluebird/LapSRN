@@ -133,6 +133,6 @@ def L1_Charbonnier_loss(predict, real):
     eps = 1e-6
     diff = tf.add(predict, -real)
     error = tf.sqrt(diff * diff + eps)
-    loss = tf.reduce_sum(error)
+    loss = tf.reduce_mean(error)
 
     return loss

@@ -17,6 +17,7 @@ class Argument():
         self.decay_step = 50  #多少步学习速率衰减一次
         self.lr = 0.0001         #初始化的学习速率
         self.iter_nums = 10000  #迭代次数
+        self.momentum = 0.9     #采用动量算法的动量
         self.train_data_path = "./dataset/BSDS300/images/train"  #训练集文件夹的位置
         self.validation_data_path = "./dataset/BSDS300/images/validation"  # 验证集文件夹的位置
         self.test_data_path = "./dataset/BSDS300/images/validation"  # 测试集文件夹的位置
