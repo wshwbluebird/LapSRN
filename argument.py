@@ -14,15 +14,17 @@ class Argument():
         self.num_threads = 4     #数据导入开启的线程数量
         self.min_after_dequeue = 1024  #保证线程中至少剩下的数据数量
         self.decay = 2          #衰减速率
-        self.decay_step = 50  #多少步学习速率衰减一次
-        self.lr = 0.0001         #初始化的学习速率
+        self.decay_step = 50    #多少步学习速率衰减一次
+        self.lr = 1e-5          #初始化的学习速率
+        self.min_lr = 1e-30     #衰减到多少为止
         self.iter_nums = 10000  #迭代次数
         self.momentum = 0.9     #采用动量算法的动量
         self.train_data_path = "./dataset/BSDS300/images/train"  #训练集文件夹的位置
         self.validation_data_path = "./dataset/BSDS300/images/validation"  # 验证集文件夹的位置
         self.test_data_path = "./dataset/BSDS300/images/validation"  # 测试集文件夹的位置
         self.save_path = "./"   #保存模型参数的地方
-        self.model_name = "testModel3"  #训练模型的名字
+        self.model_name = "testModel4"  #训练模型的名字
+
 
 
 options = Argument()

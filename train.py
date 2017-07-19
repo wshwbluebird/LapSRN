@@ -3,6 +3,7 @@ import tensorflow as tf
 import argument
 import net
 import time
+import dacay_learning_rate
 from os.path import join
 import os
 def get_loss_of_batch(path):
@@ -30,13 +31,13 @@ def train():
     loss = get_loss_of_batch(path)  #训练损失函数
 
     global_step = tf.Variable(0, trainable=False, name='global_step')
-    learning_rate = tf.train.inverse_time_decay(argument.options.lr, global_step, argument.options.decay_step
+    learning_rate = dacay_learning_rate.binary_decay(argument.options.lr, global_step, argument.options.decay_step
                                                 , argument.options.decay)
     train_step  = tf.train.MomentumOptimizer(learning_rate,momentum=argument.options.momentum).minimize(loss, global_step=global_step)
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
-        with tf.device('/gpu:0'):
+        with tf.device('/cpu:0'):
             if is_already_Save(save_path):
                 saver.restore(sess, save_path)
                 print("load last model ckpt")
@@ -67,7 +68,7 @@ def train():
 
                 if step % 100 == 0:
                     save_path = saver.save(sess, save_path)
-                    print("Model restored!"+str(step))
+                    print("Model restored!"+str(sess.run(global_step)))
 
 
 """
@@ -107,3 +108,5 @@ def inference():
 
 
 train()
+
+
