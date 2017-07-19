@@ -21,7 +21,7 @@ class Argument():
         self.validation_data_path = "./dataset/BSDS300/images/validation"  # 验证集文件夹的位置
         self.test_data_path = "./dataset/BSDS300/images/validation"  # 测试集文件夹的位置
         self.save_path = "./"   #保存模型参数的地方
-        self.model_name = "testModel"  #训练好一个模型的名字
+        self.model_name = "testModel"  #训练模型的名字
 
 
 options = Argument()

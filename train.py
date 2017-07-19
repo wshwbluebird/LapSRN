@@ -65,7 +65,7 @@ def train():
                 print(format_str % (step, batch_loss, examples_per_sec, sec_per_batch))
 
             save_path = saver.save(sess, save_path)
-            print("Model restored!")
+            print("Model restored!"+step)
 
 
 """
@@ -99,6 +99,8 @@ def inference():
         print("no model please train a model first")
         return
     pass
+
+    #TODO
 
 
 train()
