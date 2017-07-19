@@ -36,35 +36,38 @@ def train():
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
-        if is_already_Save(save_path):
-            saver.restore(sess, save_path)
-            print("load last model ckpt")
-        else:
-            sess.run(tf.global_variables_initializer())
-            print("create new model")
-        tf.train.start_queue_runners(sess=sess)
-        for step in range(1, argument.options.iter_nums+1):
-            feed_dict = {path:argument.options.validation_data_path}
+        with tf.device('/gpu:0'):
+            if is_already_Save(save_path):
+                saver.restore(sess, save_path)
+                print("load last model ckpt")
+            else:
+                sess.run(tf.global_variables_initializer())
+                print("create new model")
+            tf.train.start_queue_runners(sess=sess)
+            for step in range(1, argument.options.iter_nums+1):
+                feed_dict = {path:argument.options.validation_data_path}
 
-            if step % 200 == 0:
-                feed_dict = {path:argument.options.train_data_path}
+                if step % 200 == 0:
+                    feed_dict = {path:argument.options.train_data_path}
 
-            start_time = time.time()
-            step_,batch_loss = sess.run([train_step,loss],feed_dict=feed_dict)
-            duration = time.time() - start_time
+                start_time = time.time()
+                step_,batch_loss = sess.run([train_step,loss],feed_dict=feed_dict)
+                duration = time.time() - start_time
 
-            if step % 200 ==0 :
-                b_loss_validation = sess.run(loss)
-                print("step " + str(step) + ", batch _loss in validation =" + str(b_loss_validation))
-            elif step % 100 == 0:  # show training status
-                num_examples_per_step = argument.options.batch_size
-                examples_per_sec = num_examples_per_step / duration
-                sec_per_batch = float(duration)
-                format_str = 'step %d, batch_loss_train = %.3f (%.1f examples/sec; %.3f sec/batch)'
-                print(format_str % (step, batch_loss, examples_per_sec, sec_per_batch))
+                if step % 200 ==0 :
+                    b_loss_validation = sess.run(loss)
+                    print("step " + str(step) + ", batch _loss in validation =" + str(b_loss_validation))
+                
+                elif step % 100 == 0 or step % 200 == 1:  # show training status
+                    num_examples_per_step = argument.options.batch_size
+                    examples_per_sec = num_examples_per_step / duration
+                    sec_per_batch = float(duration)
+                    format_str = 'step %d, batch_loss_train = %.3f (%.1f examples/sec; %.3f sec/batch)'
+                    print(format_str % (step, batch_loss, examples_per_sec, sec_per_batch))
 
-            save_path = saver.save(sess, save_path)
-            print("Model restored!"+str(step))
+                if step % 100 == 0:
+                    save_path = saver.save(sess, save_path)
+                    print("Model restored!"+str(step))
 
 
 """
@@ -79,15 +82,16 @@ def test():
     loss = get_loss_of_batch(argument.options.test_data_path)
     saver = tf.train.Saver()
     with tf.Session() as sess:
-        saver.restore(sess, save_path)
-        tf.train.start_queue_runners(sess=sess)
-        loss_total = 0
-        for test_step in range(10):
-            loss_cur = sess.run(loss)
-            loss_total += loss_cur
+        with tf.device('/gpu:0'):
+            saver.restore(sess, save_path)
+            tf.train.start_queue_runners(sess=sess)
+            loss_total = 0
+            for test_step in range(10):
+                loss_cur = sess.run(loss)
+                loss_total += loss_cur
 
-        loss_result = loss_total/10
-        print("loss in test_Set = " +str(loss_result))
+            loss_result = loss_total/10
+            print("loss in test_Set = " +str(loss_result))
 
 """
     预测用代码
