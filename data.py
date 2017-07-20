@@ -41,9 +41,9 @@ def batch_queue_for_training(data_path):
 
     image_HR4 = tf.image.resize_images(image_HR8, [int(image_height / 2), int(image_width / 2)],
                                        method=tf.image.ResizeMethod.BICUBIC)
-    image_HR2 = tf.image.resize_images(image_HR4, [int(image_height / 4), int(image_width / 4)],
+    image_HR2 = tf.image.resize_images(image_HR8, [int(image_height / 4), int(image_width / 4)],
                                        method=tf.image.ResizeMethod.BICUBIC)
-    image_LR = tf.image.resize_images(image_HR2, [int(image_height / 8), int(image_width / 8)],
+    image_LR = tf.image.resize_images(image_HR8, [int(image_height / 8), int(image_width / 8)],
                                       method=tf.image.ResizeMethod.BICUBIC)
 
     low_res_batch, high2_res_batch,high4_res_batch,high8_res_batch = tf.train.shuffle_batch(
@@ -53,4 +53,7 @@ def batch_queue_for_training(data_path):
         capacity=min_queue_examples + 3 * batch_size,
         min_after_dequeue=min_queue_examples)
 
-    return low_res_batch, high2_res_batch,high4_res_batch,high8_res_batch
+    return low_res_batch, high2_res_batch, high4_res_batch, high8_res_batch
+
+    
+

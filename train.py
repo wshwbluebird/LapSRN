@@ -9,19 +9,20 @@ import math
 import os
 
 
-def get_psrn_by_mse(mse):
+def get_psnr_by_mse(mse):
+    rmse = tf.sqrt(mse)
     ten = tf.constant(10.0)
+    twenty = tf.constant(20.0)
     one = tf.constant(1.0)
-    mid = tf.div(one,mse)
+    mid = tf.div(one,rmse)
     a = tf.log(mid)
     b = tf.log(ten)
-    psnr = tf.div(a,b)
+    c = tf.div(a,b)
+    psnr = tf.multiply(twenty, c)
     return psnr
 
-
-
 def get_loss_of_batch(path):
-    [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training(argument.options.train_data_path)
+    [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training(path)
     hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
     loss1 = net.L1_Charbonnier_loss(hr2_predict, HR2_set)
     loss2 = net.L1_Charbonnier_loss(hr4_predict, HR4_set)
@@ -33,13 +34,13 @@ def get_loss_of_batch(path):
 def get_avg_psnr(path):
     [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training(path)
     hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
-    mse1 = tf.losses.mean_squared_error(hr2_predict, HR2_set)
-    mse2 = tf.losses.mean_squared_error(hr4_predict, HR4_set)
-    mse3 = tf.losses.mean_squared_error(hr8_predict, HR8_set)
+    mse1 = tf.losses.mean_squared_error(HR2_set, hr2_predict)
+    mse2 = tf.losses.mean_squared_error(HR4_set, hr4_predict)
+    mse3 = tf.losses.mean_squared_error(HR8_set, hr8_predict)
 
-    psnr1 = get_psrn_by_mse(mse1)
-    psnr2 = get_psrn_by_mse(mse2)
-    psnr3 = get_psrn_by_mse(mse3)
+    psnr1 = get_psnr_by_mse(mse1)
+    psnr2 = get_psnr_by_mse(mse2)
+    psnr3 = get_psnr_by_mse(mse3)
 
     return [psnr1,psnr2,psnr3]
 
@@ -54,7 +55,7 @@ def train():
 
     save_path = join(argument.options.save_path,argument.options.model_name+".ckpt")
     path = tf.placeholder(tf.string)
-    loss = get_loss_of_batch(path)  #训练损失函数
+    loss = get_loss_of_batch(argument.options.train_data_path)  #训练损失函数
 
     global_step = tf.Variable(0, trainable=False, name='global_step')
     learning_rate = dacay_learning_rate.binary_decay(argument.options.lr, global_step, argument.options.decay_step
@@ -72,7 +73,7 @@ def train():
                 print("create new model")
             tf.train.start_queue_runners(sess=sess)
             for step in range(1, argument.options.iter_nums+1):
-                feed_dict = {path:argument.options.validation_data_path}
+                feed_dict = {path:argument.options.train_data_path}
 
                 if step % 20 == 0:
                     feed_dict = {path:argument.options.train_data_path}
@@ -92,7 +93,7 @@ def train():
                     format_str = 'step %d, batch_loss_train = %.3f (%.1f examples/sec; %.3f sec/batch)'
                     print(format_str % (step, batch_loss, examples_per_sec, sec_per_batch))
 
-                if step % 10 == 0:
+                if step % 100 == 0:
                     save_path = saver.save(sess, save_path)
                     print("Model restored!"+str(sess.run(global_step)))
 
@@ -106,7 +107,7 @@ def test():
     if not is_already_Save(save_path):
         print("no model please train a model first")
         return
-    psrn1,psnr2,psnr3 = get_avg_psnr(argument.options.test_data_path)
+    psnr1,psnr2,psnr3 = get_avg_psnr(argument.options.test_data_path)
     saver = tf.train.Saver()
     with tf.Session() as sess:
         saver.restore(sess, save_path)
@@ -116,8 +117,9 @@ def test():
             avg_p2 = 0
             avg_p3 = 0
             for test_step in range(argument.options.test_epoches):
-                psrn_1, psnr_2, psnr_3 = sess.run([psrn1, psnr2, psnr3])
-                avg_p1 += psrn_1
+                psnr_1, psnr_2, psnr_3 = sess.run([psnr1, psnr2, psnr3])
+                print([psnr_1, psnr_2, psnr_3])
+                avg_p1 += psnr_1
                 avg_p2 += psnr_2
                 avg_p3 += psnr_3
 
@@ -141,8 +143,7 @@ def inference(pic_path):
 
     #TODO
 
-
-#train()
+train()
 test()
 
 
