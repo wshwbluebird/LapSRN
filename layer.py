@@ -1,13 +1,16 @@
 # --utf8--#
 import tensorflow as tf
 
-
 """
     层级参数 + 是否偏置 + 模型名字 + 超参数
 """
 
-def conv2d(inputs, filter_height, filter_width, output_channels,level, stride=(1, 1), padding='SAME', isBias=False,
-           name='Conv_2D',  bias_constant = 0 , stddev_norm = 0):
+
+# TODO  函数注释补全
+
+def conv2d(inputs, filter_height, filter_width, output_channels, level, weight_dacay=0, stride=(1, 1), padding='SAME',
+           isBias=False,
+           name='Conv_2D', bias_constant=0, stddev_norm=0):
     """
     tensorflow 的代码  用torch的风格进行封装
     Args:
@@ -39,17 +42,24 @@ def conv2d(inputs, filter_height, filter_width, output_channels,level, stride=(1
         有的话就话就reuse  没有的话就重新创建
         """
         filters = tf.get_variable(
-            'weights'+str(level), shape=weights_shape, initializer=filters_init, collections=['weights', 'variables'])
+            'weights' + str(level), shape=weights_shape, initializer=filters_init, collections=['weights', 'variables'])
+
+        """
+            add weight decay
+        """
+        if weight_dacay != 0:
+            add_weight_decay(filters, weight_decay=weight_dacay)
+
         if isBias:
             biases = tf.get_variable(
-                'biases'+str(level), shape=biases_shape, initializer=biases_init, collections=['biases', 'variables'])
+                'biases' + str(level), shape=biases_shape, initializer=biases_init, collections=['biases', 'variables'])
             return tf.nn.conv2d(inputs, filters, strides=[1, *stride, 1], padding=padding) + biases
         else:
             return tf.nn.conv2d(inputs, filters, strides=[1, *stride, 1], padding=padding)
 
 
-def deconv2d(inputs, filters_weight, output_factor, level, stride=(2, 2), padding='SAME', isBias = False ,
-             name='Deconv2D', bias_constant = 0 ):
+def deconv2d(inputs, filters_weight, output_factor, level, weight_dacay=0, stride=(2, 2), padding='SAME', isBias=False,
+             name='Deconv2D', bias_constant=0):
     """
     将反卷积(上采样)的代码进行包装 成torch格式的
     通道数量不发生改变
@@ -73,25 +83,33 @@ def deconv2d(inputs, filters_weight, output_factor, level, stride=(2, 2), paddin
         确定输出的output_shape
     """
     batch_size = int(inputs.get_shape()[0])
-    rows = int(inputs.get_shape()[1])*output_factor[0]
-    cols = int(inputs.get_shape()[2])*output_factor[1]
+    rows = int(inputs.get_shape()[1]) * output_factor[0]
+    cols = int(inputs.get_shape()[2]) * output_factor[1]
     channels = int(inputs.get_shape()[3])
-    output_shape = [batch_size,rows,cols,channels]
+    output_shape = [batch_size, rows, cols, channels]
     weights_shape = [len(filters_weight), len(filters_weight[0]), output_channels, input_channels]
 
     with tf.variable_scope(name):
         filters_init = tf.constant_initializer(filters_weight)
-        biases_init = tf.constant_initializer(bias_constant*1.0)
+        biases_init = tf.constant_initializer(bias_constant * 1.0)
 
         filters = tf.get_variable(
-            'weights'+str(level),  shape=weights_shape,   initializer=filters_init, collections=['weights', 'variables'])
+            'weights' + str(level), shape=weights_shape, initializer=filters_init, collections=['weights', 'variables'])
+
+        """
+            add weight decay
+        """
+        if weight_dacay != 0:
+            add_weight_decay(filters,weight_decay=weight_dacay)
 
         if isBias:
             biases = tf.get_variable(
-                'biases'+str(level), shape=biases_shape, initializer=biases_init, collections=['biases', 'variables'])
-            return tf.nn.conv2d_transpose(inputs, filters, output_shape, strides=[1, *stride, 1], padding=padding) + biases
+                'biases' + str(level), shape=biases_shape, initializer=biases_init, collections=['biases', 'variables'])
+            return tf.nn.conv2d_transpose(inputs, filters, output_shape, strides=[1, *stride, 1],
+                                          padding=padding) + biases
         else:
             return tf.nn.conv2d_transpose(inputs, filters, output_shape, strides=[1, *stride, 1], padding=padding)
+
 
 def relu(inputs, name='Relu'):
     return tf.nn.relu(inputs, name)
@@ -141,3 +159,17 @@ def batch_norm(inputs, decay, is_training, var_epsilon=1e-3, name='batch_norm'):
 
         mean, var = tf.cond(is_training, get_batch_moments, get_avg_moments)
         return tf.nn.batch_normalization(inputs, mean, var, offset, scale, var_epsilon)
+
+
+def add_weight_decay(var, weight_decay):
+    """
+    Args:
+        var:        原始变量
+        weight_decay:   衰减权重 （float）
+
+    Returns:
+
+    """
+    wd = tf.Variable(weight_decay,dtype=tf.float32)
+    weight_decay = tf.multiply(tf.nn.l2_loss(var), wd, name='weight_loss')
+    tf.add_to_collection('weight_losses', weight_decay)

@@ -28,6 +28,9 @@ def get_loss_of_batch(path):
     loss2 = net.L1_Charbonnier_loss(hr4_predict, HR4_set)
     loss3 = net.L1_Charbonnier_loss(hr8_predict, HR8_set)
     loss_total = loss1 + loss2 + loss3
+    if argument.options.weight_decay!=0:
+        loss_total += net.weight_decay_losses()
+
     return loss_total
 
 
