@@ -27,6 +27,9 @@ class Argument():
         self.save_path = "./"   #保存模型参数的地方
         self.model_name = "testModel5"  #训练模型的名字
 
+    def predict(self,batchsize):
+        self.batch_size = batchsize
+
 
 
 options = Argument()
