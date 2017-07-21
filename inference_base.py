@@ -127,11 +127,11 @@ def predict_batch(input_image,paths,scale, ori_height, ori_width):
 """
 
 
-def single_inference(input_file_paths, output_dir_paths, scale):
+def batch_inference(input_file_paths, output_dir_paths, scale):
     """
     Args:
-        input_file_paths:  输入的路径path
-        output_dir_paths:  输出的路径path
+        input_file_paths:  输入的路径paths
+        output_dir_paths:  输出的路径paths
         scale_list:   [list]    1-8 resume   size same with input
 
     Returns:
@@ -143,9 +143,10 @@ def single_inference(input_file_paths, output_dir_paths, scale):
         return
 
     input_images,height,width = change_to_images(input_file_paths)
-    hr_predict= predict_batch(input_images,input_file_paths,scale,height,width)
+    hr_predict = predict_batch(input_images, input_file_paths, scale, height, width)
 
     saver = tf.train.Saver()
+    result = []
 
     with tf.Session() as sess:
         saver.restore(sess, save_path)
@@ -153,7 +154,19 @@ def single_inference(input_file_paths, output_dir_paths, scale):
             for i in range(len(input_file_paths)):
                 hr_img = sess.run(hr_predict)
                 save_image(hr_img[i],output_dir_paths[i])
-                print('predict successfully in '+output_dir_paths[i])
+                dict={'input':input_file_paths[i],'out_put':output_dir_paths[i]}
+                result.append(dict)
+    return result
 
-if __name__ == '__main__':
-    single_inference([path1+'2092.jpg',path1+'8049.jpg'],['./hr1.jpg','./dd.jpg'],1.5)
+def single_inference(input_file_path, output_dir_path, scale):
+    """
+    Args:
+        input_file_path:  输入的路径path
+        output_dir_path:  输出的路径path
+        scale:
+
+    Returns:
+
+    """
+    return  batch_inference([input_file_path],[output_dir_path],scale)[0]
+
