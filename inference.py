@@ -71,10 +71,9 @@ def predict_SR(input_path, output_dir, out_width, out_height):
 
     """
     res = _check_parameter(input_path, output_dir, out_height, out_width)
-    if type(res) == 'string':
+    if res[0] == '!':
         return res
     else:
-        print(res[1])
         try:
             return inference_base.single_inference(input_path, res[1], res[0], out_height, out_width)
         except Exception as err:
@@ -82,4 +81,4 @@ def predict_SR(input_path, output_dir, out_width, out_height):
 
 
 
-
+print(predict_SR('./save.jpg','',300,200))
