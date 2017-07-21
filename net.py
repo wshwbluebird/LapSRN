@@ -144,5 +144,5 @@ def weight_decay_losses():
     """
    Returns: 返回损失权重的值
     """
-    ll = tf.add_n(tf.get_collection('weight_losses'), name='total_loss')
+    ll = tf.abs(tf.add_n(tf.get_collection('weight_losses'), name='total_loss'))
     return ll

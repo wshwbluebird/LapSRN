@@ -134,18 +134,6 @@ def test():
             print("psnr in hr4= " + str(avg_p2))
             print("psnr in hr8= " + str(avg_p3))
 
-"""
-    预测用代码
-"""
-def inference(pic_path):
-    save_path = join(argument.options.save_path, argument.options.model_name + ".ckpt")
-    if not is_already_Save(save_path):
-        print("no model please train a model first")
-        return
-    pass
-
-    #TODO
-
 train()
 test()
 
