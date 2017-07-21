@@ -48,10 +48,10 @@ def _check_parameter(input_path, output_dir, out_height, out_width):
     return [scale, output_path]
 
 
-def predict_SR(input_path, output_dir, out_width, out_height, ):
+def predict_SR(input_path, output_dir, out_width, out_height):
     """
     API
-    
+
     Args:
         input_path: {String}    读取图片的路径
         output_dir: {String}    保存图片的文件夹
