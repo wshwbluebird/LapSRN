@@ -11,14 +11,14 @@ class Argument():
                                 # 如果max_log_scale 为3 是指放大8倍   （在没有这个参数之前默认就是8x模型）
 
 
-        self.input_channel = 3   #读取图片的通道数量
+        self.input_channel = 1   #读取图片的通道数量
         self.conv_f = 3          #卷基层的边长
         self.conv_ft = 4         #反卷基层的边长
         self.conv_n = 64         #每一层的通道数（特征个数）
         self.depth = 7           #金字塔每一层深度学习的深度
-        self.output_channel = 3  #重建层输出的通道数
-        self.height = 480        #输入图像的高度
-        self.width = 320         #输入输入的宽度
+        self.output_channel = 1  #重建层输出的通道数
+        self.height = 248        #输入图像的高度
+        self.width = 248         #输入输入的宽度
         self.decay = 2          #衰减速率
         self.decay_step = 50    #多少步学习速率衰减一次
         self.lr = 1e-4          #初始化的学习速率
@@ -31,14 +31,14 @@ class Argument():
         self.validation_data_path = "./dataset/BSDS300/images/validation"  # 验证集文件夹的位置
         self.test_data_path = "./dataset/BSDS300/images/test"  # 测试集文件夹的位置
         self.save_path = "./"   #保存模型参数的地方
-        self.model_name = "testModel15"  #训练模型的名字
+        self.model_name = "testModel01"  #训练模型的名字
 
 
         """
             新训练集部分
         """
         self.flicker = True    # 新训练集是否打开
-        self.flicker_adjust = True # 是否在处理图像时采用自动旋转和剔除,以满足需要的长宽,宽的最大值最好为240-320 之间
+        # self.flicker_adjust = True # 是否在处理图像时采用自动旋转和剔除,以满足需要的长宽,宽的最大值最好为240-320 之间
 
         self.mirflicker_dir = '/Users/wshwbluebird/ML/mirflickr/'  # mirflicker 训练集文件夹
         self.flicker_train_opt = 'xxx'  #mk训练集训练方式  random 为随机  如果不是random 就是按约定顺序

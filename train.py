@@ -89,7 +89,7 @@ def train():
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
-        with tf.device('/gpu:0'):
+        with tf.device('/cpu:0'):
             if is_already_Save(save_path):
                 saver.restore(sess, save_path)
                 print("load last model ckpt")

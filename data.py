@@ -5,6 +5,24 @@ from PIL import Image
 import os
 
 
+
+def RGB_to_Tcrbr_Y(tensor):
+    """
+    Args:
+        tensor: 要转换的图片
+
+    Returns:
+
+    """
+    with tf.name_scope("rgb_to_tcrbr"):
+        print(tensor)
+        R = tensor[:, : ,0]
+        G = tensor[:, :, 1]
+        B = tensor[:, :, 2]
+        L = 0.299*R+0.587*G+0.114*B
+        # print(L)
+        return tf.expand_dims(L,2)
+
 def get_all_file(path, endFormat, withPath=True):
     """
         寻找path 路径下以 在endFormate数组中出现的文件格式的文件
@@ -38,8 +56,10 @@ def batch_queue_for_training_normal(data_path):
     filename_queue = tf.train.string_input_producer(get_all_file(path=data_path, endFormat=['jpg']))
     file_reader = tf.WholeFileReader()
     _, image_file = file_reader.read(filename_queue)
-    patch = tf.image.decode_jpeg(image_file, num_channel)
+    patch = tf.image.decode_jpeg(image_file, 3)
     patch = tf.image.convert_image_dtype(patch, dtype=tf.float32)
+    patch = RGB_to_Tcrbr_Y(patch)
+
 
     image_HR8 = tf.random_crop(patch, [image_height, image_width, num_channel])
 
@@ -77,8 +97,9 @@ def batch_queue_for_training_mkdir():
     filename_queue = tf.train.string_input_producer(argument.options.get_file_list())
     file_reader = tf.WholeFileReader()
     _, image_file = file_reader.read(filename_queue)
-    patch = tf.image.decode_jpeg(image_file, num_channel)
+    patch = tf.image.decode_jpeg(image_file, 3)
     patch = tf.image.convert_image_dtype(patch, dtype=tf.float32)
+    patch = RGB_to_Tcrbr_Y(patch)
 
     image_HR8 = tf.random_crop(patch, [image_height, image_width, num_channel])
 
@@ -103,16 +124,16 @@ def batch_queue_for_training_mkdir():
 def dataTest():
     low_res_batch, high2_res_batch, high4_res_batch, high8_res_batch = batch_queue_for_training_mkdir()
     images = []
-    for i in range(16):
-        temp = tf.image.convert_image_dtype(high2_res_batch[i], dtype=tf.uint8)
-        temp = tf.image.encode_jpeg(temp)
-        images.append(temp)
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        tf.train.start_queue_runners(sess=sess)
-        low = sess.run(images)
-        for i in range(16):
-            save_image(low[i], './test/low' + str(i) + '.jpg')
+    # for i in range(16):
+    #     temp = tf.image.convert_image_dtype(high2_res_batch[i], dtype=tf.uint8)
+    #     temp = tf.image.encode_jpeg(temp)
+    #     images.append(temp)
+    # with tf.Session() as sess:
+    #     sess.run(tf.global_variables_initializer())
+    #     tf.train.start_queue_runners(sess=sess)
+    #     low = sess.run(images)
+    #     for i in range(16):
+    #         save_image(low[i], './test/low' + str(i) + '.jpg')
 
 
 def get_image_info():
@@ -125,4 +146,4 @@ def get_image_info():
 
 if __name__ == '__main__':
     for i in range(1000):
-        get_image_info()
+        dataTest()
