@@ -24,8 +24,10 @@ def get_all_file(path, endFormat, withPath=True):
 
     return dir
 
-
-def batch_queue_for_training(data_path):
+"""
+    普通的JPG 训练集
+"""
+def batch_queue_for_training_normal(data_path):
     num_channel = argument.options.input_channel
     image_height = argument.options.height
     image_width = argument.options.width
@@ -62,7 +64,9 @@ def save_image(image, path):
     with open(path, "wb") as file:
         file.write(image)
 
-
+"""
+使用特殊的大量训练集
+"""
 def batch_queue_for_training_mkdir():
     num_channel = argument.options.input_channel
     image_height = argument.options.height

@@ -22,13 +22,30 @@ def get_psnr_by_mse(mse):
     return psnr
 
 
-def get_loss_of_batch(path):
-    [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training(path)
+def get_loss_of_batch(isFlicker):
+    # [LR_set, HR2_set, HR4_set, HR8_set] = []
+    """
+
+    """
+
+    """
+        检查是否采用flicker数据集
+    """
+    if not isFlicker:
+        [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training_normal(data_path = argument.options.train_data_path)
+    else:
+        [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training_mkdir()
+
+
     hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
     loss1 = net.L1_Charbonnier_loss(hr2_predict, HR2_set)
     loss2 = net.L1_Charbonnier_loss(hr4_predict, HR4_set)
     loss3 = net.L1_Charbonnier_loss(hr8_predict, HR8_set)
     loss_total = loss1 + loss2
+
+    """
+        检测是否加入8x层
+    """
     if argument.options.max_log_scale == 3:
         loss_total = loss1 + loss2 + loss3
     if argument.options.weight_decay!=0:
@@ -38,7 +55,7 @@ def get_loss_of_batch(path):
 
 
 def get_avg_psnr(path):
-    [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training(path)
+    [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training_normal(path)
     hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
     mse1 = tf.losses.mean_squared_error(HR2_set, hr2_predict)
     mse2 = tf.losses.mean_squared_error(HR4_set, hr4_predict)
@@ -63,7 +80,7 @@ def train():
 
     save_path = join(argument.options.save_path,argument.options.model_name+".ckpt")
     path = tf.placeholder(tf.string)
-    loss = get_loss_of_batch(argument.options.train_data_path)  #训练损失函数
+    loss = get_loss_of_batch(argument.options.flicker)  #训练损失函数
 
     global_step = tf.Variable(0, trainable=False, name='global_step')
     learning_rate = dacay_learning_rate.binary_decay(argument.options.lr, global_step, argument.options.decay_step

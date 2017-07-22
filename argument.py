@@ -36,6 +36,7 @@ class Argument():
         """
             新训练集部分
         """
+        self.flicker = True    # 新训练集是否打开
         self.mirflicker_dir = '/Users/wshwbluebird/ML/mirflickr/'  # mirflicker 训练集文件夹
         self.flicker_train_opt = 'xxx'  #mk训练集训练方式  random 为随机  如果不是random 就是按约定顺序
         self.flicker_file_index = 1  #mk训练集训练方式  连续型的训练指针
