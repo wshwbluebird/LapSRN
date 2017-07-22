@@ -1,7 +1,7 @@
 import tensorflow as tf
 import argument
 from os.path import join
-import random
+from PIL import Image
 import os
 
 
@@ -21,6 +21,7 @@ def get_all_file(path, endFormat, withPath=True):
             if True in [file.endswith(x) for x in endFormat]:
                 filename = join(path, file) if withPath else file
                 dir.append(filename)
+
     return dir
 
 
@@ -47,8 +48,8 @@ def batch_queue_for_training(data_path):
     image_LR = tf.image.resize_images(image_HR8, [int(image_height / 8), int(image_width / 8)],
                                       method=tf.image.ResizeMethod.BICUBIC)
 
-    low_res_batch, high2_res_batch,high4_res_batch,high8_res_batch = tf.train.shuffle_batch(
-        [image_LR, image_HR2, image_HR4 ,image_HR8],
+    low_res_batch, high2_res_batch, high4_res_batch, high8_res_batch = tf.train.shuffle_batch(
+        [image_LR, image_HR2, image_HR4, image_HR8],
         batch_size=batch_size,
         num_threads=threads_num,
         capacity=min_queue_examples + 3 * batch_size,
@@ -57,7 +58,7 @@ def batch_queue_for_training(data_path):
     return low_res_batch, high2_res_batch, high4_res_batch, high8_res_batch
 
 
-def save_image(image , path):
+def save_image(image, path):
     with open(path, "wb") as file:
         file.write(image)
 
@@ -88,7 +89,7 @@ def batch_queue_for_training_mkdir():
         [image_LR, image_HR2, image_HR4, image_HR8],
         batch_size=batch_size,
         num_threads=threads_num,
-        capacity= 3 * batch_size)
+        capacity=3 * batch_size)
 
     filename_queue.close()
 
@@ -99,18 +100,25 @@ def dataTest():
     low_res_batch, high2_res_batch, high4_res_batch, high8_res_batch = batch_queue_for_training_mkdir()
     images = []
     for i in range(16):
-        temp = tf.image.convert_image_dtype(high8_res_batch[i], dtype=tf.uint8)
+        temp = tf.image.convert_image_dtype(high2_res_batch[i], dtype=tf.uint8)
         temp = tf.image.encode_jpeg(temp)
         images.append(temp)
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         tf.train.start_queue_runners(sess=sess)
-        low=sess.run(images)
-        for i  in range(16):
-            save_image(low[i],'./test'+str(i)+'.jpg')
+        low = sess.run(images)
+        for i in range(16):
+            save_image(low[i], './test/low' + str(i) + '.jpg')
 
 
+def get_image_info():
+    paths = argument.options.get_file_list()
+    for path in paths:
+        im = Image.open(path)
+        height = min(im.size[1], im.size[0])
+        width = max(im.size[1], im.size[0])
+        print(width, height)
 
-            
-if __name__ == '__main__':
-    dataTest()
+# if __name__ == '__main__':
+#     for i in range(1000):
+#         get_image_info()

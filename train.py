@@ -21,13 +21,16 @@ def get_psnr_by_mse(mse):
     psnr = tf.multiply(twenty, c)
     return psnr
 
+
 def get_loss_of_batch(path):
     [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training(path)
     hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
     loss1 = net.L1_Charbonnier_loss(hr2_predict, HR2_set)
     loss2 = net.L1_Charbonnier_loss(hr4_predict, HR4_set)
     loss3 = net.L1_Charbonnier_loss(hr8_predict, HR8_set)
-    loss_total = loss1 + loss2 + loss3
+    loss_total = loss1 + loss2
+    if argument.options.max_log_scale == 3:
+        loss_total = loss1 + loss2 + loss3
     if argument.options.weight_decay!=0:
         loss_total += net.weight_decay_losses()
 
@@ -39,13 +42,15 @@ def get_avg_psnr(path):
     hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
     mse1 = tf.losses.mean_squared_error(HR2_set, hr2_predict)
     mse2 = tf.losses.mean_squared_error(HR4_set, hr4_predict)
-    mse3 = tf.losses.mean_squared_error(HR8_set, hr8_predict)
-
     psnr1 = get_psnr_by_mse(mse1)
     psnr2 = get_psnr_by_mse(mse2)
-    psnr3 = get_psnr_by_mse(mse3)
 
-    return [psnr1,psnr2,psnr3]
+    if argument.options.max_log_scale == 3:
+         mse3 = tf.losses.mean_squared_error(HR8_set, hr8_predict)
+         psnr3 = get_psnr_by_mse(mse3)
+         return [psnr1,psnr2,psnr3]
+
+    return [psnr1, psnr2]
 
 
 def is_already_Save(savePath):
@@ -116,23 +121,39 @@ def test():
         saver.restore(sess, save_path)
         with tf.device('/gpu:0'):
             tf.train.start_queue_runners(sess=sess)
-            avg_p1 = 0
-            avg_p2 = 0
-            avg_p3 = 0
-            for test_step in range(argument.options.test_epoches):
-                psnr_1, psnr_2, psnr_3 = sess.run([psnr1, psnr2, psnr3])
-                print([psnr_1, psnr_2, psnr_3])
-                avg_p1 += psnr_1
-                avg_p2 += psnr_2
-                avg_p3 += psnr_3
 
-            avg_p1 = avg_p1 / argument.options.test_epoches
-            avg_p2 = avg_p2 / argument.options.test_epoches
-            avg_p3 = avg_p3 / argument.options.test_epoches
+            if (argument.options.max_log_scale <3):
+                avg_p1 = 0
+                avg_p2 = 0
+                for test_step in range(argument.options.test_epoches):
+                    psnr_1, psnr_2= sess.run([psnr1, psnr2])
+                    print([psnr_1, psnr_2])
+                    avg_p1 += psnr_1
+                    avg_p2 += psnr_2
 
-            print("psnr in hr2= "+ str(avg_p1))
-            print("psnr in hr4= " + str(avg_p2))
-            print("psnr in hr8= " + str(avg_p3))
+                avg_p1 = avg_p1 / argument.options.test_epoches
+                avg_p2 = avg_p2 / argument.options.test_epoches
+
+                print("psnr in hr2= "+ str(avg_p1))
+                print("psnr in hr4= " + str(avg_p2))
+            else:
+                avg_p1 = 0
+                avg_p2 = 0
+                avg_p3 = 0
+                for test_step in range(argument.options.test_epoches):
+                    psnr_1, psnr_2,avg_p3 = sess.run([psnr1, psnr2,avg_p3])
+                    print([psnr_1, psnr_2,avg_p3])
+                    avg_p1 += psnr_1
+                    avg_p2 += psnr_2
+                    avg_p3 += avg_p3
+
+                avg_p1 = avg_p1 / argument.options.test_epoches
+                avg_p2 = avg_p2 / argument.options.test_epoches
+                avg_p3 = avg_p3 / argument.options.test_epoches
+
+                print("psnr in hr2= " + str(avg_p1))
+                print("psnr in hr4= " + str(avg_p2))
+                print("psnr in hr8= " + str(avg_p3))
 
 train()
 test()

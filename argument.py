@@ -5,6 +5,11 @@ import random
 
 class Argument():
     def __init__(self):
+
+        self.max_log_scale = 2  #模型最大扩大多少倍   如果max_log_scale 为2 是指放大4倍
+                                # 如果max_log_scale 为3 是指放大8倍   （在没有这个参数之前默认就是8x模型）
+
+
         self.input_channel = 3   #读取图片的通道数量
         self.conv_f = 3          #卷基层的边长
         self.conv_ft = 4         #反卷基层的边长
@@ -15,13 +20,13 @@ class Argument():
         self.width = 248         #输入输入的宽度
         self.decay = 2          #衰减速率
         self.decay_step = 50    #多少步学习速率衰减一次
-        self.lr = 1e-5          #初始化的学习速率
+        self.lr = 1e-4          #初始化的学习速率
         self.min_lr = 1e-30     #衰减到多少为止
         self.iter_nums = 1000   #迭代次数
         self.momentum = 0.9     #采用动量算法的动量
         self.test_epoches = 20  #测试的迭代周期数
         self.weight_decay = 1e-4  #权值衰减 (用tensorfow 自己实现的)
-        self.train_data_path = "./dataset/BSDS300/images/train"  #训练集文件夹的位置
+        self.train_data_path = "./dataset/BSDS300/images/train/"  #训练集文件夹的位置
         self.validation_data_path = "./dataset/BSDS300/images/validation"  # 验证集文件夹的位置
         self.test_data_path = "./dataset/BSDS300/images/test"  # 测试集文件夹的位置
         self.save_path = "./"   #保存模型参数的地方
