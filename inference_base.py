@@ -81,7 +81,8 @@ def predict_single(input_image,path,scale, out_height, out_width):
     """
     argument.options.predict(1)
     factor = get_scale_factor(scale)
-    hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(input_image)
+
+    hr2_predict, hr4_predict,hr8_predict = net.get_LasSRN(input_image)
 
     """
         determine the floor picture
@@ -92,8 +93,7 @@ def predict_single(input_image,path,scale, out_height, out_width):
         image = hr2_predict
     elif factor == 4:
         image = hr4_predict
-    else:
-        image = hr8_predict
+
 
 
     """

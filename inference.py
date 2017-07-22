@@ -74,11 +74,10 @@ def predict_SR(input_path, output_dir, out_width, out_height):
     if res[0] == '!':
         return res
     else:
-        try:
+        # try:
             return inference_base.single_inference(input_path, res[1], res[0], out_height, out_width)
-        except Exception as err:
-            return '!ERROR:model error'
+        # except Exception as err:
+        #     return '!ERROR:model error'
 
-
-
-print(predict_SR('./save.jpg','',300,200))
+if __name__ == '__main__':
+    print(predict_SR('./save.jpg','./',300,200))

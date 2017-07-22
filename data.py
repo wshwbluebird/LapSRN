@@ -123,6 +123,6 @@ def get_image_info():
         width = max(im.size[1], im.size[0])
         print(width, height)
 
-# if __name__ == '__main__':
-#     for i in range(1000):
-#         get_image_info()
+if __name__ == '__main__':
+    for i in range(1000):
+        get_image_info()
