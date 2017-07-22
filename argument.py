@@ -1,4 +1,7 @@
 # --utf8--#
+from os.path import join
+import numpy
+import random
 
 class Argument():
     def __init__(self):
@@ -8,11 +11,8 @@ class Argument():
         self.conv_n = 64         #每一层的通道数（特征个数）
         self.depth = 7           #金字塔每一层深度学习的深度
         self.output_channel = 3  #重建层输出的通道数
-        self.height = 320        #输入图像的高度
-        self.width = 320         #输入输入的宽度
-        self.batch_size = 16     #每批训练数据的大小
-        self.num_threads = 4     #数据导入开启的线程数量
-        self.min_after_dequeue = 1024  #保证线程中至少剩下的数据数量
+        self.height = 248        #输入图像的高度
+        self.width = 248         #输入输入的宽度
         self.decay = 2          #衰减速率
         self.decay_step = 50    #多少步学习速率衰减一次
         self.lr = 1e-5          #初始化的学习速率
@@ -27,9 +27,49 @@ class Argument():
         self.save_path = "./"   #保存模型参数的地方
         self.model_name = "testModel15"  #训练模型的名字
 
+
+        """
+            新训练集部分
+        """
+        self.mirflicker_dir = '/Users/wshwbluebird/ML/mirflickr/'  # mirflicker 训练集文件夹
+        self.flicker_train_opt = 'xxx'  #mk训练集训练方式  random 为随机  如果不是random 就是按约定顺序
+        self.flicker_file_index = 1  #mk训练集训练方式  连续型的训练指针
+        self.flicker_begin_index = 1  # mk训练集训练方式  连续型的训练指针
+        self.flicker_end_index = 25000  # mk训练集训练方式  连续型的训练指针
+
+        self.batch_size = 16  # 每批训练数据的大小
+        self.num_threads = 4  # 数据导入开启的线程数量
+        self.min_after_dequeue = 1024  # 保证线程中至少剩下的数据数量
+        self.flicker_random_list = list(numpy.arange(self.flicker_begin_index
+                                                ,1+self.flicker_end_index,1))
+
     def predict(self,batchsize):
         self.batch_size = batchsize
+
+    def get_file_list(self):
+        toFileName  =lambda x: join(self.mirflicker_dir,'im'+str(x)+'.jpg')
+        if options.flicker_train_opt == 'random':
+            numList =  random.sample(options.flicker_random_list, options.batch_size)
+            return list(map(toFileName,numList))
+        else:
+            filelist = []
+            for i in range(self.batch_size):
+                filename = join(self.mirflicker_dir,'im'+str(self.flicker_file_index)+'.jpg')
+                filelist.append(filename)
+                self.flicker_file_index = self.flicker_begin_index-1\
+                                          +(self.flicker_file_index+1)%\
+                                           (self.flicker_end_index-self.flicker_begin_index +1)
+            return filelist
+
+
 
 
 
 options = Argument()
+
+if __name__ =='__main__':
+    for i in range(10):
+        print(options.get_file_list())
+        print()
+
+

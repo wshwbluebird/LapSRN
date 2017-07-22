@@ -126,7 +126,7 @@ def test():
                 avg_p2 += psnr_2
                 avg_p3 += psnr_3
 
-            avg_p1 =  avg_p1 / argument.options.test_epoches
+            avg_p1 = avg_p1 / argument.options.test_epoches
             avg_p2 = avg_p2 / argument.options.test_epoches
             avg_p3 = avg_p3 / argument.options.test_epoches
 
