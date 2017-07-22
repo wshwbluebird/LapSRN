@@ -55,16 +55,25 @@ class Argument():
     def predict(self,batchsize):
         self.batch_size = batchsize
 
-    def get_image_info(path):
+    def get_image_info(self, path):
         im = Image.open(path)
-        height = min(im.size[1], im.size[0])
-        width = max(im.size[1], im.size[0])
-        return width, height
+        height = im.size[1]
+        width = im.size[0]
+        print(width,height)
+        mark = False
+        if width < height:
+            mark = True
+            height = width
+        if height < self.height:
+            return False,mark
+        else :
+            return  True,mark
+
 
     def get_file_list(self):
         toFileName  =lambda x: join(self.mirflicker_dir,'im'+str(x)+'.jpg')
         if options.flicker_train_opt == 'random':
-            numList =  random.sample(options.flicker_random_list, options.batch_size)
+            numList =  random.sample(options.flicker_random_list, self.batch_size)
             return list(map(toFileName,numList))
         else:
             filelist = []
@@ -76,17 +85,52 @@ class Argument():
                                            (self.flicker_end_index-self.flicker_begin_index +1)
             return filelist
 
-
+    """
+        获得更清晰的flicker数据集
+    """
     def get_adjust_file_list(self):
         if self.height > 330:
             self.height = 330
+
+        toFileName = lambda x: join(self.mirflicker_dir, 'im' + str(x) + '.jpg')
+
+        if options.flicker_train_opt == 'random':
+            numList = random.sample(options.flicker_random_list, min(self.batch_size*3,1000))
+            fileList = list(map(toFileName, numList))
+            back_filename = []
+            back_info = []
+            for name in fileList:
+                a,b = self.get_image_info(name)
+                if a:
+                    back_filename.append(name)
+                    back_info.append(b)
+                    if len(back_info) == self.batch_size:
+                        return back_filename,back_info
+
+
+
+        else:
+            back_filename = []
+            back_info = []
+            for i in range(min(self.batch_size*3,1000)):
+                filename = join(self.mirflicker_dir, 'im' + str(self.flicker_file_index) + '.jpg')
+                a, b = self.get_image_info(filename)
+                if a:
+                    back_filename.append(filename)
+                    back_info.append(b)
+                    if len(back_info) == self.batch_size:
+                        return back_filename,back_info
+                self.flicker_file_index = self.flicker_begin_index - 1 \
+                                          + (self.flicker_file_index + 1) % \
+                                            (self.flicker_end_index - self.flicker_begin_index + 1)
+
 
 
 options = Argument()
 
 if __name__ =='__main__':
     for i in range(10):
-        print(options.get_file_list())
-        print()
+        a,b = options.get_adjust_file_list()
+        # print(a,b)
 
 
