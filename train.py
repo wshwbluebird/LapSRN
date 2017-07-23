@@ -56,20 +56,16 @@ def get_loss_of_batch(isFlicker):
 
 
 def get_avg_psnr(path):
-    [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training_normal(path)
+    [LR_set, HR2_set, HR4_set] = data.pil_single_test_SET5(path)
     hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
-    print(HR2_set)
     mse1 = tf.losses.mean_squared_error(HR2_set, hr2_predict)
     mse2 = tf.losses.mean_squared_error(HR4_set, hr4_predict)
     psnr1 = get_psnr_by_mse(mse1)
     psnr2 = get_psnr_by_mse(mse2)
-
-    if argument.options.max_log_scale == 3:
-         mse3 = tf.losses.mean_squared_error(HR8_set, hr8_predict)
-         psnr3 = get_psnr_by_mse(mse3)
-         return [psnr1,psnr2,psnr3]
-
     return [psnr1, psnr2]
+
+
+
 
 
 def is_already_Save(savePath):
@@ -134,47 +130,31 @@ def test():
     if not is_already_Save(save_path):
         print("no model please train a model first")
         return
-    psnr1,psnr2 = get_avg_psnr('./ddr/')
+
+    path = tf.placeholder(dtype=tf.string)
+    psnr1, psnr2 = get_avg_psnr(path)
     saver = tf.train.Saver()
+    list = data.get_all_file(argument.options.set5_dir, 'png')
     with tf.Session() as sess:
         saver.restore(sess, save_path)
         with tf.device('/gpu:0'):
             tf.train.start_queue_runners(sess=sess)
+            avg_p1 = 0
+            avg_p2 = 0
+            for name in list:
+                psnr_1, psnr_2= sess.run([psnr1, psnr2],feed_dict={path:name})
+                print([psnr_1, psnr_2])
+                avg_p1 += psnr_1
+                avg_p2 += psnr_2
 
-            if (argument.options.max_log_scale <3):
-                avg_p1 = 0
-                avg_p2 = 0
-                for test_step in range(argument.options.test_epoches):
-                    psnr_1, psnr_2= sess.run([psnr1, psnr2])
-                    print([psnr_1, psnr_2])
-                    avg_p1 += psnr_1
-                    avg_p2 += psnr_2
+            avg_p1 = avg_p1 / len(list)
+            avg_p2 = avg_p2 / len(list)
 
-                avg_p1 = avg_p1 / argument.options.test_epoches
-                avg_p2 = avg_p2 / argument.options.test_epoches
+            print("psnr in hr2= "+ str(avg_p1))
+            print("psnr in hr4= " + str(avg_p2))
 
-                print("psnr in hr2= "+ str(avg_p1))
-                print("psnr in hr4= " + str(avg_p2))
-            else:
-                avg_p1 = 0
-                avg_p2 = 0
-                avg_p3 = 0
-                for test_step in range(argument.options.test_epoches):
-                    psnr_1, psnr_2,avg_p3 = sess.run([psnr1, psnr2,avg_p3])
-                    print([psnr_1, psnr_2,avg_p3])
-                    avg_p1 += psnr_1
-                    avg_p2 += psnr_2
-                    avg_p3 += avg_p3
 
-                avg_p1 = avg_p1 / argument.options.test_epoches
-                avg_p2 = avg_p2 / argument.options.test_epoches
-                avg_p3 = avg_p3 / argument.options.test_epoches
-
-                print("psnr in hr2= " + str(avg_p1))
-                print("psnr in hr4= " + str(avg_p2))
-                print("psnr in hr8= " + str(avg_p3))
-
-train()
+# train()
 test()
 
 

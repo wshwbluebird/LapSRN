@@ -52,6 +52,8 @@ class Argument():
         self.flicker_random_list = list(np.arange(self.flicker_begin_index
                                                 ,1+self.flicker_end_index,1))
 
+        self.set5_dir = './SET5'   #测试集文件set5 路径
+
     def predict(self,batchsize):
         self.batch_size = batchsize
 

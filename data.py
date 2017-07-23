@@ -7,7 +7,9 @@ import numpy as np
 
 
 
-
+"""
+    fliker image data by pil
+"""
 
 def pil_batch_queue():
     lrs ,hr2s , hr4s = argument.options.get_pil_file_list()
@@ -22,11 +24,33 @@ def pil_batch_queue():
     hr4s = tf.expand_dims(hr4s, 3)
     return lrs,hr2s,hr4s,None
 
+"""
+    SET5 test
+"""
+def pil_single_test_SET5(path):
+    im = Image.open(path)
+    height = (im.size[1]//4)*4
+    width = (im.size[0]//4)%4
 
+    box = [0, 0, width, height]
 
+    HR4 = im.crop(box)
+    HR2 = HR4.resize((int(width / 2), int(height / 2)), Image.BICUBIC)
+    LR = HR4.resize((int(width / 4), int(height / 4)), Image.BICUBIC)
+    a = np.asarray(LR.convert('L'))
+    b = np.asarray(HR2.convert('L'))
+    c = np.asarray(HR4.convert('L'))
 
-
-
+    lrs = np.array(a)
+    hr2s = np.array(b)
+    hr4s = np.array(c)
+    lrs = tf.convert_to_tensor(lrs, dtype=tf.float32)
+    hr2s = tf.convert_to_tensor(hr2s, dtype=tf.float32)
+    hr4s = tf.convert_to_tensor(hr4s, dtype=tf.float32)
+    lrs = tf.expand_dims(lrs, 3)
+    hr2s = tf.expand_dims(hr2s, 3)
+    hr4s = tf.expand_dims(hr4s, 3)
+    return lrs, hr2s, hr4s, None
 
 
 
