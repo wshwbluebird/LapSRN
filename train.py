@@ -89,7 +89,7 @@ def train():
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
-        with tf.device('/cpu:0'):
+        with tf.device('/gpu:0'):
             if is_already_Save(save_path):
                 saver.restore(sess, save_path)
                 print("load last model ckpt")
@@ -132,7 +132,7 @@ def test():
     if not is_already_Save(save_path):
         print("no model please train a model first")
         return
-    psnr1,psnr2,psnr3 = get_avg_psnr(argument.options.test_data_path)
+    psnr1,psnr2 = get_avg_psnr(argument.options.test_data_path)
     saver = tf.train.Saver()
     with tf.Session() as sess:
         saver.restore(sess, save_path)
@@ -172,7 +172,7 @@ def test():
                 print("psnr in hr4= " + str(avg_p2))
                 print("psnr in hr8= " + str(avg_p3))
 
-train()
+#train()
 test()
 
 
