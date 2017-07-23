@@ -3,6 +3,31 @@ import argument
 from os.path import join
 from PIL import Image
 import os
+import numpy as np
+
+
+
+
+
+def pil_batch_queue():
+    lrs ,hr2s , hr4s = argument.options.get_pil_file_list()
+    lrs =  np.array(lrs)
+    hr2s = np.array(hr2s)
+    hr4s = np.array(hr4s)
+    lrs = tf.convert_to_tensor(lrs,dtype=tf.float32)
+    hr2s = tf.convert_to_tensor(hr2s, dtype=tf.float32)
+    hr4s = tf.convert_to_tensor(hr4s, dtype=tf.float32)
+    lrs = tf.expand_dims(lrs,3)
+    hr2s = tf.expand_dims(hr2s, 3)
+    hr4s = tf.expand_dims(hr4s, 3)
+    return lrs,hr2s,hr4s,None
+
+
+
+
+
+
+
 
 
 
@@ -58,7 +83,7 @@ def batch_queue_for_training_normal(data_path):
     _, image_file = file_reader.read(filename_queue)
     patch = tf.image.decode_jpeg(image_file, 3)
     patch = tf.image.convert_image_dtype(patch, dtype=tf.float32)
-    patch = RGB_to_Tcrbr_Y(patch)
+    # patch = RGB_to_Tcrbr_Y(patch)
 
 
     image_HR8 = tf.random_crop(patch, [image_height, image_width, num_channel])
@@ -122,18 +147,18 @@ def batch_queue_for_training_mkdir():
 
 
 def dataTest():
-    low_res_batch, high2_res_batch, high4_res_batch, high8_res_batch = batch_queue_for_training_mkdir()
+    low_res_batch, high2_res_batch, high4_res_batch, high8_res_batch = batch_queue_for_training_normal(argument.options.test_data_path)
     images = []
-    # for i in range(16):
-    #     temp = tf.image.convert_image_dtype(high2_res_batch[i], dtype=tf.uint8)
-    #     temp = tf.image.encode_jpeg(temp)
-    #     images.append(temp)
-    # with tf.Session() as sess:
-    #     sess.run(tf.global_variables_initializer())
-    #     tf.train.start_queue_runners(sess=sess)
-    #     low = sess.run(images)
-    #     for i in range(16):
-    #         save_image(low[i], './test/low' + str(i) + '.jpg')
+    for i in range(16):
+        temp = tf.image.convert_image_dtype(high2_res_batch[i], dtype=tf.uint8)
+        temp = tf.image.encode_jpeg(temp)
+        images.append(temp)
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        tf.train.start_queue_runners(sess=sess)
+        low = sess.run(images)
+        for i in range(16):
+            save_image(low[i], './test/low' + str(i) + '.jpg')
 
 
 def get_image_info():
@@ -145,5 +170,4 @@ def get_image_info():
         print(width, height)
 
 if __name__ == '__main__':
-    for i in range(1000):
-        dataTest()
+     print(pil_batch_queue())

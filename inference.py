@@ -36,6 +36,7 @@ def _check_parameter(input_path, output_dir, out_height, out_width):
         scale1 = out_height / height
         scale2 = out_width / width
         scale = max(scale1, scale2)
+        print(scale1,scale2)
         # TODO this could be change
         if abs(scale1 - scale2) > 1e-2:
             return '!ERROR:image cannot be zoom by different scale parameters'
@@ -71,6 +72,7 @@ def predict_SR(input_path, output_dir, out_width, out_height):
 
     """
     res = _check_parameter(input_path, output_dir, out_height, out_width)
+    print(res)
     if res[0] == '!':
         return res
     else:
@@ -80,4 +82,5 @@ def predict_SR(input_path, output_dir, out_width, out_height):
         #     return '!ERROR:model error'
 
 if __name__ == '__main__':
-    print(predict_SR('./save.jpg','./',300,200))
+    print(predict_SR('./psnr/eer.png','./psnr/',640,360))
+    print(predict_SR('./psnr/eer.png', './psnr/', 640, 360))

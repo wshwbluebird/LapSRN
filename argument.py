@@ -1,6 +1,6 @@
 # --utf8--#
 from os.path import join
-import numpy
+import numpy as np
 import random
 from PIL import Image
 
@@ -17,8 +17,8 @@ class Argument():
         self.conv_n = 64         #每一层的通道数（特征个数）
         self.depth = 7           #金字塔每一层深度学习的深度
         self.output_channel = 1  #重建层输出的通道数
-        self.height = 248        #输入图像的高度
-        self.width = 248         #输入输入的宽度
+        self.height = 320        #输入图像的高度
+        self.width = 480        #输入输入的宽度
         self.decay = 2          #衰减速率
         self.decay_step = 50    #多少步学习速率衰减一次
         self.lr = 1e-4          #初始化的学习速率
@@ -31,7 +31,7 @@ class Argument():
         self.validation_data_path = "./dataset/BSDS300/images/validation"  # 验证集文件夹的位置
         self.test_data_path = "./dataset/BSDS300/images/test"  # 测试集文件夹的位置
         self.save_path = "./"   #保存模型参数的地方
-        self.model_name = "testModel01"  #训练模型的名字
+        self.model_name = "testModel04"  #训练模型的名字
 
 
         """
@@ -49,25 +49,35 @@ class Argument():
         self.batch_size = 16  # 每批训练数据的大小
         self.num_threads = 4  # 数据导入开启的线程数量
         self.min_after_dequeue = 1024  # 保证线程中至少剩下的数据数量
-        self.flicker_random_list = list(numpy.arange(self.flicker_begin_index
+        self.flicker_random_list = list(np.arange(self.flicker_begin_index
                                                 ,1+self.flicker_end_index,1))
 
     def predict(self,batchsize):
         self.batch_size = batchsize
 
-    def get_image_info(self, path):
+    def get_image(self, path):
         im = Image.open(path)
         height = im.size[1]
         width = im.size[0]
-        print(width,height)
         mark = False
         if width < height:
             mark = True
             height = width
         if height < self.height:
-            return False,mark
-        else :
-            return  True,mark
+           return None,None,None
+
+        if mark:
+            im = im.rotate(90)
+
+        box = [0,0,self.width,self.height]
+
+        HR4 = im.crop(box)
+        HR2 = HR4.resize((int(self.width /2),int(self.height / 2)),Image.BICUBIC)
+        LR = HR4.resize((int(self.width / 4), int(self.height / 4)), Image.BICUBIC)
+        return np.asarray(LR.convert('L'))\
+            ,np.asarray(HR2.convert('L')), \
+               np.asarray(HR4.convert('L'))
+
 
 
     def get_file_list(self):
@@ -88,49 +98,31 @@ class Argument():
     """
         获得更清晰的flicker数据集
     """
-    def get_adjust_file_list(self):
-        if self.height > 330:
-            self.height = 330
-
-        toFileName = lambda x: join(self.mirflicker_dir, 'im' + str(x) + '.jpg')
-
-        if options.flicker_train_opt == 'random':
-            numList = random.sample(options.flicker_random_list, min(self.batch_size*3,1000))
-            fileList = list(map(toFileName, numList))
-            back_filename = []
-            back_info = []
-            for name in fileList:
-                a,b = self.get_image_info(name)
-                if a:
-                    back_filename.append(name)
-                    back_info.append(b)
-                    if len(back_info) == self.batch_size:
-                        return back_filename,back_info
-
-
-
-        else:
-            back_filename = []
-            back_info = []
-            for i in range(min(self.batch_size*3,1000)):
-                filename = join(self.mirflicker_dir, 'im' + str(self.flicker_file_index) + '.jpg')
-                a, b = self.get_image_info(filename)
-                if a:
-                    back_filename.append(filename)
-                    back_info.append(b)
-                    if len(back_info) == self.batch_size:
-                        return back_filename,back_info
-                self.flicker_file_index = self.flicker_begin_index - 1 \
-                                          + (self.flicker_file_index + 1) % \
-                                            (self.flicker_end_index - self.flicker_begin_index + 1)
+    def get_pil_file_list(self):
+        lr_list = []
+        hr2_list = []
+        hr4_list = []
+        for i in range(10 *self.batch_size):
+            filename = join(self.mirflicker_dir, 'im' + str(self.flicker_file_index) + '.jpg')
+            lr,hr2,hr4 = self.get_image(filename)
+            if lr is not None:
+                lr_list.append(lr/255)
+                hr2_list .append(hr2/255)
+                hr4_list .append(hr4/255)
+            self.flicker_file_index = self.flicker_begin_index - 1 \
+                                      + (self.flicker_file_index + 1) % \
+                                        (self.flicker_end_index - self.flicker_begin_index + 1)
+            if len(lr_list) == self.batch_size:
+                return lr_list,hr2_list,hr4_list
 
 
 
 options = Argument()
 
 if __name__ =='__main__':
-    for i in range(10):
-        a,b = options.get_adjust_file_list()
-        # print(a,b)
+     lr,ll,dd = options.get_pil_file_list()
+     i = 0
+     for image in ll:
+         print(image)
 
 

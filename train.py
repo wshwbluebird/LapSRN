@@ -1,3 +1,4 @@
+
 import data
 import tensorflow as tf
 import argument
@@ -34,19 +35,19 @@ def get_loss_of_batch(isFlicker):
     if not isFlicker:
         [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training_normal(data_path = argument.options.train_data_path)
     else:
-        [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training_mkdir()
+        [LR_set, HR2_set, HR4_set, HR8_set] = data.pil_batch_queue()
 
 
     hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
     loss1 = net.L1_Charbonnier_loss(hr2_predict, HR2_set)
     loss2 = net.L1_Charbonnier_loss(hr4_predict, HR4_set)
-    loss3 = net.L1_Charbonnier_loss(hr8_predict, HR8_set)
     loss_total = loss1 + loss2
 
     """
         检测是否加入8x层
     """
     if argument.options.max_log_scale == 3:
+        loss3 = net.L1_Charbonnier_loss(hr8_predict, HR8_set)
         loss_total = loss1 + loss2 + loss3
     if argument.options.weight_decay!=0:
         loss_total += net.weight_decay_losses()
@@ -57,6 +58,7 @@ def get_loss_of_batch(isFlicker):
 def get_avg_psnr(path):
     [LR_set, HR2_set, HR4_set, HR8_set] = data.batch_queue_for_training_normal(path)
     hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
+    print(HR2_set)
     mse1 = tf.losses.mean_squared_error(HR2_set, hr2_predict)
     mse2 = tf.losses.mean_squared_error(HR4_set, hr4_predict)
     psnr1 = get_psnr_by_mse(mse1)
@@ -89,7 +91,7 @@ def train():
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
-        with tf.device('/gpu:0'):
+        with tf.device('/cpu:0'):
             if is_already_Save(save_path):
                 saver.restore(sess, save_path)
                 print("load last model ckpt")
@@ -132,7 +134,7 @@ def test():
     if not is_already_Save(save_path):
         print("no model please train a model first")
         return
-    psnr1,psnr2 = get_avg_psnr(argument.options.test_data_path)
+    psnr1,psnr2 = get_avg_psnr('./ddr/')
     saver = tf.train.Saver()
     with tf.Session() as sess:
         saver.restore(sess, save_path)
@@ -172,7 +174,7 @@ def test():
                 print("psnr in hr4= " + str(avg_p2))
                 print("psnr in hr8= " + str(avg_p3))
 
-#train()
+train()
 test()
 
 

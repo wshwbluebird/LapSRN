@@ -37,3 +37,11 @@ testModel15.ckpt.data-00000-of-00001
 testModel15.ckpt.index
 
 *.meta
+
+*.local
+
+ww.py
+
+*.png
+
+*.png

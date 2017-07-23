@@ -88,6 +88,7 @@ def predict_single(input_image,path,scale, out_height, out_width):
         determine the floor picture
     """
     if factor == 1:
+        print('dsf')
         image = input_image
     elif factor == 2:
         image = hr2_predict
@@ -138,16 +139,17 @@ def single_inference(input_file_path, output_dir_path, scale, out_height, out_wi
     input_images,height,width = change_to_image(input_file_path)
     hr_predict = predict_single(input_images, input_file_path, scale, out_height, out_width)
 
+
     saver = tf.train.Saver()
     result = []
 
     with tf.Session() as sess:
         saver.restore(sess, save_path)
+        # sess.run(tf.global_variables_initializer())
         with tf.device('/cpu:0'):
             hr_img = sess.run(hr_predict)
             save_image(hr_img,output_dir_path)
-            return output_dir_path
 
 
-
-
+    tf.reset_default_graph()
+    return output_dir_path

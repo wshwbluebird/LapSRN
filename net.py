@@ -31,7 +31,6 @@ def bilinear_upsample_weights(channel, number_of_classes):
                         number_of_classes), dtype=np.float32)
 
     upsample_kernel = upsample_filt(channel)
-
     for i in range(number_of_classes):
         weights[:, :, i, i] = upsample_kernel
 
@@ -146,3 +145,24 @@ def weight_decay_losses():
     """
     ll = tf.abs(tf.add_n(tf.get_collection('weight_losses'), name='total_loss'))
     return ll
+
+
+
+
+def get_bicubic(low_res_input):
+    image_height = arg.options.height
+    image_width = arg.options.width
+    HR_2 = tf.image.resize_images(low_res_input, [int(image_height / 4), int(image_width / 4)],
+                                       method=tf.image.ResizeMethod.BICUBIC)
+
+    HR_4 = tf.image.resize_images(low_res_input, [int(image_height / 2), int(image_width / 2)],
+                                  method=tf.image.ResizeMethod.BICUBIC)
+    HR_8 = tf.image.resize_images(low_res_input, [int(image_height ), int(image_width)],
+                                  method=tf.image.ResizeMethod.BICUBIC)
+
+    return HR_2,HR_4,HR_8
+
+
+if __name__ == '__main__':
+    print(bilinear_upsample_weights(64,1))
+    print(7//2)
