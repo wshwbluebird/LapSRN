@@ -54,15 +54,22 @@ def get_loss_of_batch(isFlicker):
 
     return loss_total
 
-
+"""
+    获得每一张图像的监测信息
+"""
 def get_avg_psnr(path):
-    [LR_set, HR2_set, HR4_set] = data.pil_single_test_SET5(path)
+    [LR_set, HR2_set, HR4_set,_] = data.pil_single_test_SET5(path)
     hr2_predict, hr4_predict, hr8_predict = net.get_LasSRN(LR_set)
     mse1 = tf.losses.mean_squared_error(HR2_set, hr2_predict)
     mse2 = tf.losses.mean_squared_error(HR4_set, hr4_predict)
     psnr1 = get_psnr_by_mse(mse1)
     psnr2 = get_psnr_by_mse(mse2)
     return [psnr1, psnr2]
+
+def get_set5_psnr():
+    list = data.get_all_file(argument.options.set5_dir, 'png')
+    return  (get_avg_psnr(path=list[argument.options.test_index]))
+
 
 
 
@@ -130,28 +137,15 @@ def test():
     if not is_already_Save(save_path):
         print("no model please train a model first")
         return
-
-    path = tf.placeholder(dtype=tf.string)
-    psnr1, psnr2 = get_avg_psnr(path)
+    psnr_all = get_set5_psnr()
     saver = tf.train.Saver()
-    list = data.get_all_file(argument.options.set5_dir, 'png')
+
     with tf.Session() as sess:
         saver.restore(sess, save_path)
-        with tf.device('/gpu:0'):
+        with tf.device('/cpu:0'):
             tf.train.start_queue_runners(sess=sess)
-            avg_p1 = 0
-            avg_p2 = 0
-            for name in list:
-                psnr_1, psnr_2= sess.run([psnr1, psnr2],feed_dict={path:name})
-                print([psnr_1, psnr_2])
-                avg_p1 += psnr_1
-                avg_p2 += psnr_2
-
-            avg_p1 = avg_p1 / len(list)
-            avg_p2 = avg_p2 / len(list)
-
-            print("psnr in hr2= "+ str(avg_p1))
-            print("psnr in hr4= " + str(avg_p2))
+            psnr_s = sess.run(psnr_all)
+            print(psnr_s)
 
 
 # train()

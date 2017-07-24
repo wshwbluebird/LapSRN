@@ -15,10 +15,10 @@ class Argument():
         self.conv_f = 3          #卷基层的边长
         self.conv_ft = 4         #反卷基层的边长
         self.conv_n = 64         #每一层的通道数（特征个数）
-        self.depth = 7           #金字塔每一层深度学习的深度
+        self.depth = 10           #金字塔每一层深度学习的深度
         self.output_channel = 1  #重建层输出的通道数
-        self.height = 320        #输入图像的高度
-        self.width = 480        #输入输入的宽度
+        self.height = 128        #输入图像的高度
+        self.width = 128        #输入输入的宽度
         self.decay = 2          #衰减速率
         self.decay_step = 50    #多少步学习速率衰减一次
         self.lr = 1e-4          #初始化的学习速率
@@ -53,6 +53,7 @@ class Argument():
                                                 ,1+self.flicker_end_index,1))
 
         self.set5_dir = './SET5'   #测试集文件set5 路径
+        self.test_index = 1
 
     def predict(self,batchsize):
         self.batch_size = batchsize
@@ -118,13 +119,25 @@ class Argument():
                 return lr_list,hr2_list,hr4_list
 
 
+    def get_set5(self,path):
+        im = Image.open(path)
+        height = (im.size[1] // 4) * 4
+        width = (im.size[0] // 4) * 4
+
+
+        box = [0, 0, width, height]
+
+        HR4 = im.crop(box)
+        HR2 = HR4.resize((int(width / 2), int(height / 2)), Image.BICUBIC)
+        LR = HR4.resize((int(width / 4), int(height / 4)), Image.BICUBIC)
+        return np.asarray(LR.convert('L'))/255,np.asarray(HR2.convert('L'))/255,np.asarray(HR4.convert('L'))/255
+
+
 
 options = Argument()
 
 if __name__ =='__main__':
-     lr,ll,dd = options.get_pil_file_list()
-     i = 0
-     for image in ll:
-         print(image)
+    a,b,c= options.get_set5('./SET5/baby.png')
+    print(a,b,c)
 
 

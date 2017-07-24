@@ -115,7 +115,7 @@ def relu(inputs, name='Relu'):
     return tf.nn.relu(inputs, name)
 
 
-def leaky_relu(inputs, neg_leak=0.1, name='LeakyRelu'):
+def leaky_relu(inputs, leak=0.1, name='LeakyRelu'):
     """
     Args:
         inputs: 上一层
@@ -125,7 +125,7 @@ def leaky_relu(inputs, neg_leak=0.1, name='LeakyRelu'):
     Returns:
     """
     with tf.name_scope(name):
-        return tf.maximum(inputs,(0.0 - neg_leak) * inputs)
+        return tf.maximum(inputs,leak * inputs)
 
 
 def batch_norm(inputs, decay, is_training, var_epsilon=1e-3, name='batch_norm'):

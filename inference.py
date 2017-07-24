@@ -78,9 +78,43 @@ def predict_SR(input_path, output_dir, out_width, out_height):
     else:
         # try:
             return inference_base.single_inference(input_path, res[1], res[0], out_height, out_width)
-        # except Exception as err:
+        #  Exception as err:
         #     return '!ERROR:model error'
 
+
+def predict_PIL(input_path, output_dir, out_width, out_height):
+    """
+    API
+
+    Args:
+        input_path: {String}    读取图片的路径
+        output_dir: {String}    保存图片的文件夹
+        out_width:  {Number}    处理后图片的宽度
+        out_height: {Number}    处理后图片的高
+
+    Returns:
+        {String}
+        正常情况下:  返回处理后图像的路径 {String} eg：./test/887b1347e1a2.jpg
+        异常情况下:
+                 '!ERROR:input_path should be end with JPG,JPEG or PNG'  图像扩展名不是 JPG  JPEG  PNG
+                 '!ERROR:input_file do not exits'                        输入图像不存在
+                 '!ERROR:output_dir do not exits'                        输出保存的文件夹不存在
+                 '!ERROR:cannot identify image file 'xxx/xxx.jpg         读入图像损坏
+                 '!ERROR:image cannot be zoom by different scale parameters'  图像长宽方法比例不匹配
+                 '!ERROR: model error'                                    模型内部错误
+
+    """
+    res = _check_parameter(input_path, output_dir, out_height, out_width)
+    print(res)
+    if res[0] == '!':
+        return res
+    else:
+        im = Image.open(input_path)
+        im = im.resize((out_width,out_height),Image.BICUBIC)
+        im.save(res[1])
+        return res[1]
+
 if __name__ == '__main__':
-    print(predict_SR('./psnr/eer.png','./psnr/',640,360))
-    print(predict_SR('./psnr/eer.png', './psnr/', 640, 360))
+    print( 'our::   '+predict_SR('./psnr/small_nn.png','./psnr/',1280,720))
+    print(' pil::   ' + predict_PIL('./psnr/small_nn.png', './psnr/', 1280, 720))
+    # print(predict_SR('./psnr/eer.png', './psnr/', 640, 360))

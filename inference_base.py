@@ -4,6 +4,7 @@ import argument
 import net
 import os
 from PIL import Image
+import numpy as np
 
 path1 = "./dataset/BSDS300/images/train/"
 
@@ -18,25 +19,25 @@ def change_to_image(path):
     im = Image.open(path)
     height = im.size[1]
     width = im.size[0]
-    pic_num = 1
-    num_channel = argument.options.input_channel
-    images = []
-
-    content = tf.read_file(path)
-    image = None
-    if path.endswith("jpg") or path.endswith("jpg"):
-        image =  tf.image.decode_jpeg(content, num_channel)
-    elif path.endswith("png"):
-        image = tf.image.decode_png(content, num_channel)
-    else :
-        print("wrong image: "+path)
-
-    if image is not None:
-        image = tf.image.convert_image_dtype(image, dtype=tf.float32)
-        image = tf.reshape(image,(height,width,3))
-
-
-    image = tf.reshape(image,(pic_num,height,width,3))
+    im = im.convert('YCbCr')
+    image = np.asarray(im)[:,:,0]/255
+    image = tf.convert_to_tensor(np.array(image), dtype=tf.float32)
+    print(image)
+    image = tf.expand_dims(image,0)
+    image = tf.expand_dims(image,3)
+    # if path.endswith("jpg") or path.endswith("jpg"):
+    #     image =  tf.image.decode_jpeg(content, num_channel)
+    # elif path.endswith("png"):
+    #     image = tf.image.decode_png(content, num_channel)
+    # else :
+    #     print("wrong image: "+path)
+    #
+    # if image is not None:
+    #     image = tf.image.convert_image_dtype(image, dtype=tf.float32)
+    #     image = tf.reshape(image,(height,width,3))
+    #
+    #
+    # image = tf.reshape(image,(pic_num,height,width,3))
     return [image,height,width]
 
 
@@ -105,15 +106,7 @@ def predict_single(input_image,path,scale, out_height, out_width):
     image = tf.image.convert_image_dtype(image, dtype=tf.uint8)
     print(image)
 
-    if path.endswith("jpg") or path.endswith("jpg"):
-        image = tf.image.encode_jpeg(image)
-    elif path.endswith("png"):
-        image = tf.image.encode_png(image)
-    else:
-        print("wrong image: " + path)
-        return
-
-    return image
+    return image[:,:,0]
 
 
 """
@@ -143,12 +136,52 @@ def single_inference(input_file_path, output_dir_path, scale, out_height, out_wi
     saver = tf.train.Saver()
     result = []
 
+    im = Image.open(input_file_path)
+    im = im.convert('YCbCr')
+    # print(np.asarray(im)[:,:,2])
+    im = im.resize((out_width,out_height),Image.BICUBIC)
+
+
+    U = np.asarray(im)[:,:,1]
+    V = np.asarray(im)[:, :,2]
+
+
+    result = np.zeros([out_height,out_width,3])
+    # result[:,:,1] = cr
+    # result[:,:,2] = cb
+
     with tf.Session() as sess:
         saver.restore(sess, save_path)
         # sess.run(tf.global_variables_initializer())
         with tf.device('/cpu:0'):
-            hr_img = sess.run(hr_predict)
-            save_image(hr_img,output_dir_path)
+            Y = sess.run(hr_predict)
+
+            nd128 = np.ndarray([out_height,out_width],dtype='int')
+            for i in range(out_height):
+                for j in range(out_width):
+                    nd128[i][j] = 128
+            # print(V)
+            # print(V-nd128)
+            R =  Y + 1.4075 *(V-nd128)
+            G = Y-0.3455 *(U-nd128)-0.7169 *(V-nd128)
+            B = Y + 1.779 *(U-nd128)
+
+            image = np.ndarray([out_height,out_width,3])
+            image[:,:,0] = R
+            image[:, :, 1] = G
+            image[:, :, 2] = B
+            r = Image.fromarray(R).convert('L')
+            g = Image.fromarray(G).convert('L')
+            b = Image.fromarray(B).convert('L')
+            result = Image.merge("RGB", (r, g, b))
+
+            # print(np.array(image,dtype='int'))
+            # result = Image.fromarray(np.array(image,dtype='int'))
+            # print(np.array(result,dtype='int'))
+            # img = Image.fromarray(np.array(result,dtype='int'),)
+            result.save(output_dir_path)
+
+
 
 
     tf.reset_default_graph()
